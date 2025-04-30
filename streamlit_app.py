@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import re
+import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="Genie Scout Web-App", layout="wide")
 st.title("🧠 Genie Scout Web-App")
@@ -27,10 +28,9 @@ if uploaded_file:
 
     df = df.dropna(subset=["Potenzial", "Bewertung", "Alter"])
 
-    # Scouting-Modi
+    # 🎯 Scouting-Modi
     st.sidebar.header("🎯 Scouting-Modus")
     modus = st.sidebar.selectbox("Modus wählen", ["Manuell", "Top-Talente", "Schnäppchen", "Soforthilfe"])
-
     if modus == "Top-Talente":
         df = df[(df["Alter"] <= 21) & (df["Potenzial"] >= 150)]
     elif modus == "Schnäppchen":
@@ -38,21 +38,21 @@ if uploaded_file:
     elif modus == "Soforthilfe":
         df = df[(df["Bewertung"] >= 130) & (df["Alter"] <= 30)]
 
-    # Direkte Filter für CA/PA/Alter
+    # 📏 Eigene Filter
     st.sidebar.header("📏 Eigene Anforderungen")
     min_ca = st.sidebar.number_input("Minimale aktuelle Stärke (CA)", 0, 200, 0)
     min_pa = st.sidebar.number_input("Minimales Potenzial (PA)", 0, 200, 0)
     max_age = st.sidebar.number_input("Maximales Alter", 0, 100, 100)
     df = df[(df["Bewertung"] >= min_ca) & (df["Potenzial"] >= min_pa) & (df["Alter"] <= max_age)]
 
-    # Realismusfilter
+    # 💰 Realismusfilter
     st.sidebar.header("💰 Realismusfilter")
     max_gehalt = st.sidebar.number_input("Max. Gehalt (€)", 0, 2_000_000, 50000)
     max_wert = st.sidebar.number_input("Max. Marktwert (€)", 0, 500_000_000, 2_000_000)
     max_zufr = st.sidebar.number_input("Max. Zufriedenheit", 0, 100, 60)
     df = df[(df["Gehalt"] <= max_gehalt) & (df["Wert"] <= max_wert) & (df["Zufriedenheit"] <= max_zufr)]
 
-    # Attribut-Filter
+    # 🧪 Attributfilter
     st.sidebar.header("🧪 Attribut-Filter")
     attr_cols = [col for col in df.columns if df[col].dtype in ["int64", "float64"]
                  and col not in ["Potenzial", "Bewertung", "Alter", "Wert", "Gehalt", "Zufriedenheit", "Score"]]
@@ -61,28 +61,36 @@ if uploaded_file:
         min_val = st.sidebar.number_input(f"Min. {attr}", 1, 20, 10)
         df = df[df[attr] >= min_val]
 
-    # Positionsfilter
+    # 📌 Positionsfilter
     st.sidebar.header("📌 Positionsfilter")
     pos_filter = st.sidebar.text_input("Position enthält (z. B. ST, DM, RL)", "").upper()
     if pos_filter:
         df = df[df["Position"].str.contains(pos_filter, na=False)]
 
-    # Score-Berechnung für Sortierung (optional)
-    st.sidebar.header("📈 Score-Gewichtung (nur Sortierung)")
+    # 📈 Score zur Sortierung
+    st.sidebar.header("📈 Score-Gewichtung (optional)")
     w_pot = st.sidebar.number_input("Gewichtung Potenzial", 0.0, 1.0, 0.6)
     w_akt = st.sidebar.number_input("Gewichtung Bewertung", 0.0, 1.0, 0.3)
     w_alt = st.sidebar.number_input("Gewichtung Alter (negativ)", 0.0, 1.0, 0.1)
     df["Score"] = df["Potenzial"] * w_pot + df["Bewertung"] * w_akt - df["Alter"] * w_alt
 
-    # Favoriten markieren
+    # ⭐ Favoriten
     st.subheader(f"⚽ Gefundene Spieler: {len(df)}")
     favoriten = st.multiselect("⭐ Favoriten markieren", df["Name"].tolist())
     df["Favorit"] = df["Name"].isin(favoriten)
 
-    # Tabelle anzeigen
-    st.dataframe(df.sort_values(by=["Favorit", "Score"], ascending=[False, False]), use_container_width=True)
+    # Spalten sortieren wie Genie Scout
+    anzeige_cols = [
+        "Name", "Position", "Alter", "Bewertung", "Potenzial",
+        "Nation", "Verein", "Wert", "Gehalt", "Zufriedenheit", "Score", "Favorit"
+    ]
+    anzeige_cols = [col for col in anzeige_cols if col in df.columns]
+    rest = [col for col in df.columns if col not in anzeige_cols]
+    df_sorted = df[anzeige_cols + rest]
 
-    # Detailansicht
+    st.dataframe(df_sorted.sort_values(by=["Favorit", "Score"], ascending=[False, False]), use_container_width=True)
+
+    # 📋 Detailansicht
     st.subheader("📋 Spieler im Detail")
     def safe(val, unit="", digits=0):
         if pd.isna(val):
@@ -113,6 +121,33 @@ if uploaded_file:
         **Score:** {safe(s['Score'], '', 1)}  
         **Favorit:** {"✅" if s.get("Favorit") else "—"}
         """)
+
+    # 📊 Vergleichsansicht
+    st.subheader("📊 Spieler vergleichen (grafisch)")
+    vergleich_namen = st.multiselect("Spieler auswählen für Vergleich (max. 5)", df["Name"].dropna().unique(), max_selections=5)
+    if vergleich_namen:
+        vergleiche = df[df["Name"].isin(vergleich_namen)].reset_index(drop=True)
+
+        # Standardattribute + manuelle Auswahl
+        st.markdown("**Standardattribute:** Technik, Antritt, Übersicht, Passen, Kondition, Kreativität")
+        standard = ["Technik", "Antritt", "Übersicht", "Passen", "Kondition", "Kreativität"]
+        attribs_im_df = [a for a in standard if a in vergleiche.columns]
+
+        st.markdown("**Zusätzliche Attribute auswählen (optional):**")
+        manuell = st.multiselect("Weitere Attribute", [a for a in attr_cols if a not in attribs_im_df])
+        attribute = attribs_im_df + manuell
+
+        if attribute:
+            fig, ax = plt.subplots(figsize=(10, 5))
+            for i, row in vergleiche.iterrows():
+                werte = [row[a] if not pd.isna(row[a]) else 0 for a in attribute]
+                ax.bar([f"{a} ({row['Name']})" for a in attribute], werte, label=row["Name"])
+            ax.set_ylabel("Attributwert")
+            ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
+            ax.legend()
+            st.pyplot(fig)
+        else:
+            st.info("Bitte wähle mindestens ein Attribut für den Vergleich aus.")
 
 else:
     st.info("⬆️ Bitte lade oben deine Excel-Datei hoch.")
