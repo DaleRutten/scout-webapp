@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import re
-import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="Genie Scout Web-App", layout="wide")
 st.title("🧠 Genie Scout Web-App")
@@ -122,32 +121,6 @@ if uploaded_file:
         **Favorit:** {"✅" if s.get("Favorit") else "—"}
         """)
 
-    # 📊 Vergleichsansicht
-    st.subheader("📊 Spieler vergleichen (grafisch)")
-    vergleich_namen = st.multiselect("Spieler auswählen für Vergleich (max. 5)", df["Name"].dropna().unique(), max_selections=5)
-    if vergleich_namen:
-        vergleiche = df[df["Name"].isin(vergleich_namen)].reset_index(drop=True)
-
-        # Standardattribute + manuelle Auswahl
-        st.markdown("**Standardattribute:** Technik, Antritt, Übersicht, Passen, Kondition, Kreativität")
-        standard = ["Technik", "Antritt", "Übersicht", "Passen", "Kondition", "Kreativität"]
-        attribs_im_df = [a for a in standard if a in vergleiche.columns]
-
-        st.markdown("**Zusätzliche Attribute auswählen (optional):**")
-        manuell = st.multiselect("Weitere Attribute", [a for a in attr_cols if a not in attribs_im_df])
-        attribute = attribs_im_df + manuell
-
-        if attribute:
-            fig, ax = plt.subplots(figsize=(10, 5))
-            for i, row in vergleiche.iterrows():
-                werte = [row[a] if not pd.isna(row[a]) else 0 for a in attribute]
-                ax.bar([f"{a} ({row['Name']})" for a in attribute], werte, label=row["Name"])
-            ax.set_ylabel("Attributwert")
-            ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
-            ax.legend()
-            st.pyplot(fig)
-        else:
-            st.info("Bitte wähle mindestens ein Attribut für den Vergleich aus.")
-
 else:
     st.info("⬆️ Bitte lade oben deine Excel-Datei hoch.")
+
