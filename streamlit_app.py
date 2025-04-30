@@ -80,8 +80,8 @@ if uploaded_file:
 
     # Spalten sortieren wie Genie Scout
     anzeige_cols = [
-        "Name", "Position", "Alter", "Bewertung", "Potenzial",
-        "Nation", "Verein", "Wert", "Gehalt", "Zufriedenheit", "Score", "Favorit"
+        "Name", "Position", "Verein", "Alter", "Bewertung", "Potenzial",
+        "Wert", "Gehalt", "Zufriedenheit", "Nation", "Score", "Favorit"
     ]
     anzeige_cols = [col for col in anzeige_cols if col in df.columns]
     rest = [col for col in df.columns if col not in anzeige_cols]
@@ -123,4 +123,3 @@ if uploaded_file:
 
 else:
     st.info("⬆️ Bitte lade oben deine Excel-Datei hoch.")
-
