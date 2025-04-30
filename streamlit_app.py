@@ -12,16 +12,21 @@ if uploaded_file:
     df.columns = df.columns.str.strip()
 
     def extract_percentage(s):
+        """Extrahiert den Prozentsatz aus der Bewertung und Potenzialspalte"""
         if isinstance(s, str):
             match = re.search(r"([\d.]+)%", s)
             return float(match.group(1)) if match else None
         return None
 
+    # Potenzial- und Bewertungsprozentsatz extrahieren
     df["Potenzial%"] = df["Beste Pot Bewertung"].apply(extract_percentage)
     df["Bewertung%"] = df["Beste Bewertung"].apply(extract_percentage)
-    df["Potenzial"] = (df["Potenzial%"] * 2).round().astype("Int64")
-    df["Bewertung"] = (df["Bewertung%"] * 2).round().astype("Int64")
 
+    # Berechnung von CA und PA auf Basis von Genie Scout:
+    df["Potenzial"] = (df["Potenzial%"] / 100) * 200  # Potenzial skaliert auf 200
+    df["Bewertung"] = (df["Bewertung%"] / 100) * 200  # Bewertung skaliert auf 200
+
+    # Andere relevante Daten umwandeln
     for col in ["Alter", "Wert", "Gehalt", "Zufriedenheit"]:
         df[col] = pd.to_numeric(df[col], errors="coerce")
 
