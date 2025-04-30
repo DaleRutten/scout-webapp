@@ -9,27 +9,38 @@ st.title("🧠 Genie Scout Web-App")
 uploaded_file = st.file_uploader("📂 Excel-Datei aus Genie Scout hochladen", type=["xlsx"])
 
 if uploaded_file:
-    try:
-        df = pd.read_excel(uploaded_file)
-        df.columns = df.columns.str.strip()
+    df = pd.read_excel(uploaded_file)
+    df.columns = df.columns.str.strip()
 
-        # Hilfsfunktion: Prozentwert aus Text wie "73.2% (M)" extrahieren
-        def extract_percentage(s):
-            if isinstance(s, str):
-                match = re.search(r"([\d.]+)%", s)
-                return float(match.group(1)) if match else None
-            return None
+    # Prozentwerte aus z. B. "73.2% (M)" extrahieren
+    def extract_percentage(s):
+        if isinstance(s, str):
+            match = re.search(r"([\d.]+)%", s)
+            return float(match.group(1)) if match else None
+        return None
 
-        # Prozentwerte extrahieren
-        df["Potenzial"] = df["Beste Pot Bewertung"].apply(extract_percentage)
-        df["Bewertung"] = df["Beste Bewertung"].apply(extract_percentage)
+    df["Potenzial"] = df["Beste Pot Bewertung"].apply(extract_percentage)
+    df["Bewertung"] = df["Beste Bewertung"].apply(extract_percentage)
 
-        # Weitere Umwandlungen
-        df["Alter"] = pd.to_numeric(df["Alter"], errors="coerce")
-        df["Wert"] = pd.to_numeric(df["Wert"], errors="coerce")
-        df["Gehalt"] = pd.to_numeric(df["Gehalt"], errors="coerce")
-        df["Zufriedenheit"] = pd.to_numeric(df["Zufriedenheit"], errors="coerce")
+    # Spalten umwandeln
+    df["Alter"] = pd.to_numeric(df["Alter"], errors="coerce")
+    df["Wert"] = pd.to_numeric(df["Wert"], errors="coerce")
+    df["Gehalt"] = pd.to_numeric(df["Gehalt"], errors="coerce")
+    df["Zufriedenheit"] = pd.to_numeric(df["Zufriedenheit"], errors="coerce")
+    df = df.dropna(subset=["Potenzial", "Bewertung", "Alter"])
 
-        df = df.dropna(subset=["Potenzial", "Bewertung", "Alter"])
+    # Score berechnen
+    st.sidebar.header("📈 Score-Gewichtung")
+    w_pot = st.sidebar.slider("Potenzial", 0.0, 1.0, 0.6)
+    w_akt = st.sidebar.slider("Bewertung", 0.0, 1.0, 0.3)
+    w_alt = st.sidebar.slider("Alter (negativ)", 0.0, 1.0, 0.1)
 
-        # Score berechnen
+    df["Score"] = (
+        df["Potenzial"] * w_pot +
+        df["Bewertung"] * w_akt -
+        df["Alter"] * w_alt
+    )
+
+    # Positionssuche (Freitext)
+    st.sidebar.header("📌 Positionssuche")
+    pos_filter =_
