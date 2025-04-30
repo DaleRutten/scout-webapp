@@ -12,11 +12,17 @@ if uploaded_file:
         df = pd.read_excel(uploaded_file)
         df.columns = df.columns.str.strip()
 
-        # Potenzial & Alter als Zahl erzwingen
+        # Spalten bereinigen und in Zahlen umwandeln
         df["Beste Pot Bewertung"] = pd.to_numeric(df["Beste Pot Bewertung"], errors="coerce")
+        df["Beste Bewertung"] = pd.to_numeric(df["Beste Bewertung"], errors="coerce")
         df["Alter"] = pd.to_numeric(df["Alter"], errors="coerce")
+        df["Wert"] = pd.to_numeric(df["Wert"], errors="coerce")
+        df["Gehalt"] = pd.to_numeric(df["Gehalt"], errors="coerce")
+        df["Zufriedenheit"] = pd.to_numeric(df["Zufriedenheit"], errors="coerce")
 
-        # Ungültige Zeilen rausfiltern
-        df = df.dropna(subset=["Beste Pot Bewertung", "Alter"])
+        df = df.dropna(subset=["Beste Pot Bewertung", "Beste Bewertung", "Alter"])
 
         # Sidebar-Filter
+        st.sidebar.header("🔍 Filter")
+        positionen = sorted(df["Position"].dropna().unique())
+        position = st.sidebar.selectbox
