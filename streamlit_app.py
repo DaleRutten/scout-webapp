@@ -23,8 +23,9 @@ if uploaded_file:
     df["Bewertung%"] = df["Beste Bewertung"].apply(extract_percentage)
 
     # Berechnung von CA und PA auf Basis von Genie Scout:
-    df["Potenzial"] = (df["Potenzial%"] / 100) * 200  # Potenzial skaliert auf 200
-    df["Bewertung"] = (df["Bewertung%"] / 100) * 200  # Bewertung skaliert auf 200
+    # 1. Wenn 100% = 200, dann (Prozentwert / 100) * 200
+    df["Potenzial"] = (df["Potenzial%"] / 100) * 200  # Potenzial nach Genie Scout umgerechnet
+    df["Bewertung"] = (df["Bewertung%"] / 100) * 200  # Bewertung nach Genie Scout umgerechnet
 
     # Andere relevante Daten umwandeln
     for col in ["Alter", "Wert", "Gehalt", "Zufriedenheit"]:
