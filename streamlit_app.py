@@ -34,7 +34,6 @@ if uploaded_file:
     for col in ["Alter", "Wert", "Gehalt", "Zufriedenheit"]:
         df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    # Entfernen von Zeilen mit fehlenden relevanten Werten
     df = df.dropna(subset=["Potenzial", "Bewertung", "Alter"])
 
     # 🎯 Scouting-Modi: Auswahl für verschiedene Scouting-Ziele
