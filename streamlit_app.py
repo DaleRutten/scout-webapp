@@ -20,19 +20,16 @@ if uploaded_file:
     st.write("Erste 5 Zeilen der Daten:")
     st.write(df.head())
 
-    # Überprüfe, ob 'Potenzial' und 'Bewertung' in den Spalten vorhanden sind
-    if "Potenzial" not in df.columns or "Bewertung" not in df.columns:
-        st.error("Die Spalten 'Potenzial' oder 'Bewertung' fehlen in den Daten!")
-        st.stop()
-
     # Sidebar Filter
     st.sidebar.header("Filtern nach Attributen")
     min_age = st.sidebar.slider("Minimales Alter", 16, 40, 18)
     max_age = st.sidebar.slider("Maximales Alter", 18, 40, 30)
     min_value = st.sidebar.number_input("Minimale Marktwert (€)", 0, int(df['Wert'].max()), 1000000)
     max_value = st.sidebar.number_input("Maximale Marktwert (€)", 1000000, int(df['Wert'].max()), 50000000)
-    min_potential = st.sidebar.slider("Minimales Potential", 0, 200, 130)
-    max_potential = st.sidebar.slider("Maximales Potential", 0, 200, 180)
+    min_ca = st.sidebar.slider("Minimale Aktuelle Fähigkeit (CA)", 0, 200, 120)  # Aktuelle Fähigkeit
+    max_ca = st.sidebar.slider("Maximale Aktuelle Fähigkeit (CA)", 0, 200, 150)  # Aktuelle Fähigkeit
+    min_pa = st.sidebar.slider("Minimales Potenzielles Potenzial (PA)", 0, 200, 130)  # Potenzielles Potenzial
+    max_pa = st.sidebar.slider("Maximales Potenzielles Potenzial (PA)", 0, 200, 180)  # Potenzielles Potenzial
 
     # Nationalitäten-Filter (alphabetisch sortiert)
     nation_filter = st.sidebar.multiselect("Nationalität", sorted(df["Nation"].unique()))
@@ -53,8 +50,10 @@ if uploaded_file:
         (df["Alter"] <= max_age) &
         (df["Wert"] >= min_value) & 
         (df["Wert"] <= max_value) &
-        (df["Potenzial"] >= min_potential) & 
-        (df["Potenzial"] <= max_potential)
+        (df["CA"] >= min_ca) & 
+        (df["CA"] <= max_ca) & 
+        (df["PA"] >= min_pa) & 
+        (df["PA"] <= max_pa)
     ]
 
     if nation_filter:
@@ -90,7 +89,7 @@ if uploaded_file:
 
     # Spieler sortieren
     st.sidebar.header("Sortieren nach:")
-    sort_by = st.sidebar.selectbox("Sortiere nach", ["Wert", "Potenzial", "Alter", "Wert pro Jahr", "Aktuelle Fähigkeit"])
+    sort_by = st.sidebar.selectbox("Sortiere nach", ["Wert", "CA", "PA", "Alter", "Aktuelle Fähigkeit"])
     ascending = st.sidebar.checkbox("Aufsteigend sortieren", True)
 
     # Daten sortieren
@@ -106,7 +105,7 @@ if uploaded_file:
     # Anzeige des Spielerprofils
     if not selected_player.empty:
         st.write("### Spielerprofil:")
-        st.write(selected_player.iloc[0][["Name", "Nation", "Position", "Wert", "Vertrag", "Aktuelle Fähigkeit", "Potenzial"]])
+        st.write(selected_player.iloc[0][["Name", "Nation", "Position", "Wert", "Vertrag", "CA", "PA"]])
         st.write("### Technische Attribute:")
         st.write(selected_player.iloc[0][["Flanken", "Abschluss", "Ballkontrolle", "Pässe", "Tackling"]])
         st.write("### Mentale Attribute:")
