@@ -16,7 +16,7 @@ if uploaded_file:
     st.write("Verfügbare Spalten:")
     st.write(df.columns)
 
-    # Versuche, eine Berechnung der CA und PA vorzunehmen, falls die Spalten existieren
+    # Berechnung von CA und PA auf Basis vorhandener Attribute
     try:
         # Dynamische Berechnung von CA und PA, auch wenn die Namen nicht genau passen
         # Beispiel: CA = Durchschnitt aus verschiedenen technischen Attributen
