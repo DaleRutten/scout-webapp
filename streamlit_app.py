@@ -5,12 +5,22 @@ import streamlit as st
 st.title("Genie Scout Web-App")
 
 # Laden der Daten
-@st.cache
+@st.cache_data
 def load_data():
     return pd.read_excel("Spielerdaten_Export.xlsx")
 
 # Daten laden
 df = load_data()
+
+# Überprüfe die Spaltennamen und zeige sie an, um Fehler zu vermeiden
+st.write("Verfügbare Spalten:")
+st.write(df.columns)
+
+# Wir gehen davon aus, dass die tatsächlichen Spalten "Potenzial" und "Bewertung" heißen.
+# Bitte ersetze diese durch die tatsächlichen Spaltennamen, falls sie anders lauten.
+if "Potenzial" not in df.columns or "Bewertung" not in df.columns:
+    st.error("Die Spalten 'Potenzial' oder 'Bewertung' fehlen in den Daten!")
+    st.stop()
 
 # Sidebar Filter
 st.sidebar.header("Filtern nach Attributen")
@@ -21,11 +31,15 @@ max_value = st.sidebar.number_input("Maximale Marktwert (€)", 1000000, int(df[
 min_potential = st.sidebar.slider("Minimales Potential", 0, 200, 130)
 max_potential = st.sidebar.slider("Maximales Potential", 0, 200, 180)
 
-# Positionen-Filter
-position_filter = st.sidebar.multiselect("Positionen wählen", df["Position"].unique())
+# Nationalitäten-Filter (alphabetisch sortiert)
+nation_filter = st.sidebar.multiselect("Nationalität", sorted(df["Nation"].unique()))
 
-# Nationalität-Filter
-nation_filter = st.sidebar.multiselect("Nationalität", df["Nation"].unique())
+# Ligen-Filter (alphabetisch sortiert und ergänzt mit Fußball Manager 2024 Ligen)
+liga_filter = st.sidebar.multiselect("Liga", sorted([
+    "Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1", 
+    "Eredivisie", "Primeira Liga", "Brasileirão", "MLS", "Argentinian Primera División",
+    "J-League", "A-League", "Saudi Pro League", "Chinese Super League"
+]))
 
 # EU-Bürger Filter
 eu_citizens = st.sidebar.checkbox("Nur EU-Bürger", False)
@@ -36,15 +50,15 @@ filtered_df = df[
     (df["Alter"] <= max_age) &
     (df["Wert"] >= min_value) & 
     (df["Wert"] <= max_value) &
-    (df["Potential"] >= min_potential) & 
-    (df["Potential"] <= max_potential)
+    (df["Potenzial"] >= min_potential) & 
+    (df["Potenzial"] <= max_potential)
 ]
-
-if position_filter:
-    filtered_df = filtered_df[filtered_df["Position"].isin(position_filter)]
 
 if nation_filter:
     filtered_df = filtered_df[filtered_df["Nation"].isin(nation_filter)]
+
+if liga_filter:
+    filtered_df = filtered_df[filtered_df["Verein"].isin(liga_filter)]
 
 if eu_citizens:
     # Hier wird angenommen, dass es eine Spalte 'EU' gibt, die angibt, ob ein Spieler EU-Bürger ist
@@ -56,7 +70,7 @@ st.dataframe(filtered_df)
 
 # Erweiterte Filterung: Vertragsdetails, Reputation etc.
 st.sidebar.header("Vertragsdetails")
-contract_status = st.sidebar.selectbox("Vertragsstatus", ["Verlassen aufgrund des Bosman-Urts", "Aktiv", "Auslaufend"])
+contract_status = st.sidebar.selectbox("Vertragsstatus", ["Verlässt aufgrund des Bosman-Urts", "Aktiv", "Auslaufend"])
 filtered_df = filtered_df[filtered_df["Vertrag"] == contract_status]
 
 # Zusatzoptionen: Spieler suchen, die die Bosman-Regel erfüllen
@@ -64,15 +78,16 @@ bosman_rule = st.sidebar.checkbox("Nur Bosman-Spieler (Verlassen aufgrund des Bo
 if bosman_rule:
     filtered_df = filtered_df[filtered_df["Vertrag"] == "Verlässt aufgrund des Bosman-Urts"]
 
-# Spielerposition
+# Spielerpositionen-Filter: Sortiert nach der üblichen Aufstellung
 st.sidebar.header("Spieler-Positionen")
-position_1 = st.sidebar.selectbox("Position 1", df["Position"].unique())
-position_2 = st.sidebar.selectbox("Position 2", df["Position"].unique())
-filtered_df = filtered_df[filtered_df["Position"].isin([position_1, position_2])]
+positions = ["TW", "IV", "ZDM", "ZOM", "ZM", "LM", "RM", "LF", "RF", "ST"]  # Torwart, Verteidiger, Mittelfeld, Stürmer
+position_filter = st.sidebar.multiselect("Positionen", positions, default=positions)
+
+filtered_df = filtered_df[filtered_df["Position"].isin(position_filter)]
 
 # Spieler sortieren
 st.sidebar.header("Sortieren nach:")
-sort_by = st.sidebar.selectbox("Sortiere nach", ["Wert", "Potential", "Alter", "Wert pro Jahr", "Aktuelle Fähigkeit"])
+sort_by = st.sidebar.selectbox("Sortiere nach", ["Wert", "Potenzial", "Alter", "Wert pro Jahr", "Aktuelle Fähigkeit"])
 ascending = st.sidebar.checkbox("Aufsteigend sortieren", True)
 
 # Daten sortieren
@@ -88,7 +103,7 @@ selected_player = filtered_df[filtered_df["Name"] == player_details]
 # Anzeige des Spielerprofils
 if not selected_player.empty:
     st.write("### Spielerprofil:")
-    st.write(selected_player.iloc[0][["Name", "Nation", "Position", "Wert", "Vertrag", "Aktuelle Fähigkeit", "Potential"]])
+    st.write(selected_player.iloc[0][["Name", "Nation", "Position", "Wert", "Vertrag", "Aktuelle Fähigkeit", "Potenzial"]])
     st.write("### Technische Attribute:")
     st.write(selected_player.iloc[0][["Flanken", "Abschluss", "Ballkontrolle", "Pässe", "Tackling"]])
     st.write("### Mentale Attribute:")
