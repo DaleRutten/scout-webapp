@@ -20,6 +20,12 @@ if uploaded_file:
     st.write("Erste 5 Zeilen der Daten:")
     st.write(df.head())
 
+    # Berechnung von CA und PA auf Basis anderer Attribute
+    # Beispiel: CA = Durchschnitt der technischen Attribute, PA = Durchschnitt der physischen und mentalen Attribute
+    # Diese Berechnung kann an die tatsächliche Logik angepasst werden, die du verwenden möchtest
+    df["CA"] = df[["Ballkontrolle", "Abschluss", "Pässe", "Flanken", "Dribbling"]].mean(axis=1)
+    df["PA"] = df[["Konzentration", "Aggressivität", "Teamwork", "Flair", "Kondition"]].mean(axis=1)
+
     # Sidebar Filter
     st.sidebar.header("Filtern nach Attributen")
     min_age = st.sidebar.slider("Minimales Alter", 16, 40, 18)
