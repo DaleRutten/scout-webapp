@@ -26,7 +26,6 @@ if uploaded_file:
         available_ca_columns = [col for col in ca_columns if col in df.columns]
         available_pa_columns = [col for col in pa_columns if col in df.columns]
 
-        # Berechne CA und PA nur, wenn mindestens eine passende Spalte vorhanden ist
         if available_ca_columns:
             df["CA"] = df[available_ca_columns].mean(axis=1)
         else:
@@ -44,25 +43,30 @@ if uploaded_file:
     # Sicherstellen, dass CA und PA berechnet wurden
     if "CA" not in df.columns or "PA" not in df.columns:
         st.warning("Die Spalten 'CA' oder 'PA' konnten nicht berechnet werden. Die Berechnungen wurden übersprungen.")
-        # Fallback: Manuelle Berechnungen oder andere Spalten verwenden
         df["CA"] = df.get("CA", 0)  # Falls keine CA-Berechnung möglich ist, setze auf 0
         df["PA"] = df.get("PA", 0)  # Falls keine PA-Berechnung möglich ist, setze auf 0
 
     # Sidebar Filter
     st.sidebar.header("Filtern nach Attributen")
+    
+    # Altersfilter
     min_age = st.sidebar.slider("Minimales Alter", 16, 40, 18)
     max_age = st.sidebar.slider("Maximales Alter", 18, 40, 30)
+    
+    # Marktwertfilter
     min_value = st.sidebar.number_input("Minimale Marktwert (€)", 0, int(df['Wert'].max()), 1000000)
     max_value = st.sidebar.number_input("Maximale Marktwert (€)", 1000000, int(df['Wert'].max()), 50000000)
-    min_ca = st.sidebar.slider("Minimale Aktuelle Fähigkeit (CA)", 0, 200, 120)  # Aktuelle Fähigkeit
-    max_ca = st.sidebar.slider("Maximale Aktuelle Fähigkeit (CA)", 0, 200, 150)  # Aktuelle Fähigkeit
-    min_pa = st.sidebar.slider("Minimales Potenzielles Potenzial (PA)", 0, 200, 130)  # Potenzielles Potenzial
-    max_pa = st.sidebar.slider("Maximales Potenzielles Potenzial (PA)", 0, 200, 180)  # Potenzielles Potenzial
+    
+    # CA und PA Filter
+    min_ca = st.sidebar.slider("Minimale Aktuelle Fähigkeit (CA)", 0, 200, 120)
+    max_ca = st.sidebar.slider("Maximale Aktuelle Fähigkeit (CA)", 0, 200, 150)
+    min_pa = st.sidebar.slider("Minimales Potenzielles Potenzial (PA)", 0, 200, 130)
+    max_pa = st.sidebar.slider("Maximales Potenzielles Potenzial (PA)", 0, 200, 180)
 
     # Nationalitäten-Filter (alphabetisch sortiert)
     nation_filter = st.sidebar.multiselect("Nationalität", sorted(df["Nation"].unique()))
 
-    # Ligen-Filter (alphabetisch sortiert und ergänzt mit Fußball Manager 2024 Ligen)
+    # Ligen-Filter (alphabetisch sortiert)
     liga_filter = st.sidebar.multiselect("Liga", sorted([
         "Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1", 
         "Eredivisie", "Primeira Liga", "Brasileirão", "MLS", "Argentinian Primera División",
@@ -72,7 +76,10 @@ if uploaded_file:
     # EU-Bürger Filter
     eu_citizens = st.sidebar.checkbox("Nur EU-Bürger", False)
 
-    # Filter anwenden
+    # Spielername-Filter (Textinput)
+    player_name = st.sidebar.text_input("Spielername eingeben", "")
+
+    # Daten filtern
     filtered_df = df[
         (df["Alter"] >= min_age) & 
         (df["Alter"] <= max_age) &
@@ -94,36 +101,12 @@ if uploaded_file:
         # Hier wird angenommen, dass es eine Spalte 'EU' gibt, die angibt, ob ein Spieler EU-Bürger ist
         filtered_df = filtered_df[filtered_df['EU'] == 1]
 
-    # Überprüfe, ob die Spalte "Vertrag" existiert, bevor wir darauf zugreifen
-    if "Vertrag" in df.columns:
-        contract_status = st.sidebar.selectbox("Vertragsstatus", ["Verlässt aufgrund des Bosman-Urts", "Aktiv", "Auslaufend"])
-        filtered_df = filtered_df[filtered_df["Vertrag"] == contract_status]
+    # Spielername Filtern
+    if player_name:
+        filtered_df = filtered_df[filtered_df["Name"].str.contains(player_name, case=False, na=False)]
 
     # Daten anzeigen
     st.write(f"Gefundene Spieler: {len(filtered_df)}")
-    st.dataframe(filtered_df)
-
-    # Erweiterte Filterung: Vertragsdetails, Reputation etc.
-    bosman_rule = st.sidebar.checkbox("Nur Bosman-Spieler (Verlassen aufgrund des Bosman-Urts)", False)
-    if bosman_rule:
-        filtered_df = filtered_df[filtered_df["Vertrag"] == "Verlässt aufgrund des Bosman-Urts"]
-
-    # Spielerpositionen-Filter: Sortiert nach der üblichen Aufstellung
-    st.sidebar.header("Spieler-Positionen")
-    positions = ["TW", "IV", "ZDM", "ZOM", "ZM", "LM", "RM", "LF", "RF", "ST"]  # Torwart, Verteidiger, Mittelfeld, Stürmer
-    position_filter = st.sidebar.multiselect("Positionen", positions, default=positions)
-
-    filtered_df = filtered_df[filtered_df["Position"].isin(position_filter)]
-
-    # Spieler sortieren
-    st.sidebar.header("Sortieren nach:")
-    sort_by = st.sidebar.selectbox("Sortiere nach", ["Wert", "CA", "PA", "Alter", "Aktuelle Fähigkeit"])
-    ascending = st.sidebar.checkbox("Aufsteigend sortieren", True)
-
-    # Daten sortieren
-    filtered_df = filtered_df.sort_values(by=sort_by, ascending=ascending)
-
-    # Anzeige der Tabelle mit gefilterten Spielern
     st.dataframe(filtered_df)
 
     # Spielerprofil (detallierte Ansicht, falls angeklickt)
@@ -145,4 +128,3 @@ if uploaded_file:
 
 else:
     st.info("⬆️ Bitte lade oben deine Excel-Datei hoch.")
-
