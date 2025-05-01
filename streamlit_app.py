@@ -12,10 +12,6 @@ if uploaded_file:
     df = pd.read_excel(uploaded_file)
     df.columns = df.columns.str.strip()  # Entfernen von Leerzeichen in den Spaltennamen
 
-    # Überprüfe die Spaltennamen und zeige sie an
-    st.write("Verfügbare Spalten:")
-    st.write(df.columns)
-
     # Berechnung von CA und PA auf Basis vorhandener Attribute
     try:
         # Technische Attribute für CA und mentale Attribute für PA
@@ -48,23 +44,28 @@ if uploaded_file:
 
     # Sidebar Filter
     st.sidebar.header("Filtern nach Attributen")
-    
+
     # Altersfilter
     min_age = st.sidebar.slider("Minimales Alter", 16, 40, 18)
     max_age = st.sidebar.slider("Maximales Alter", 18, 40, 30)
-    
+
     # Marktwertfilter
     min_value = st.sidebar.number_input("Minimale Marktwert (€)", 0, int(df['Wert'].max()), 1000000)
     max_value = st.sidebar.number_input("Maximale Marktwert (€)", 1000000, int(df['Wert'].max()), 50000000)
-    
+
     # CA und PA Filter
     min_ca = st.sidebar.slider("Minimale Aktuelle Fähigkeit (CA)", 0, 200, 120)
     max_ca = st.sidebar.slider("Maximale Aktuelle Fähigkeit (CA)", 0, 200, 150)
     min_pa = st.sidebar.slider("Minimales Potenzielles Potenzial (PA)", 0, 200, 130)
     max_pa = st.sidebar.slider("Maximales Potenzielles Potenzial (PA)", 0, 200, 180)
 
-    # Nationalitäten-Filter (alphabetisch sortiert)
-    nation_filter = st.sidebar.multiselect("Nationalität", sorted(df["Nation"].unique()))
+    # Nationalitäten-Filter mit Autocomplete
+    all_nations = sorted(df["Nation"].unique())  # Alle Nationen sammeln und alphabetisch sortieren
+    nation_input = st.sidebar.text_input("Nationalität (Teilzeichenkette)", "")
+    if nation_input:
+        nation_filter = [nation for nation in all_nations if nation_input.lower() in nation.lower()]
+    else:
+        nation_filter = all_nations
 
     # Ligen-Filter (alphabetisch sortiert)
     liga_filter = st.sidebar.multiselect("Liga", sorted([
@@ -80,7 +81,7 @@ if uploaded_file:
     player_name = st.sidebar.text_input("Spielername eingeben", "")
 
     # Positionen-Filter (Alphabetische Sortierung nach gängigen Positionen)
-    positions = ["TW", "IV", "ZDM", "ZOM", "ZM", "LM", "RM", "LF", "RF", "ST"]  # Torwart, Verteidiger, Mittelfeld, Stürmer
+    positions = ["TW", "IV", "ZDM", "ZOM", "ZM", "LM", "RM", "LF", "RF", "ST"]
     position_filter = st.sidebar.multiselect("Positionen", positions, default=positions)
 
     # Daten filtern
