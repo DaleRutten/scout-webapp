@@ -41,7 +41,7 @@ if uploaded_file:
         st.error(f"Ein Fehler trat auf: {e}")
         st.stop()
 
-    # Überprüfe, ob CA und PA jetzt in der DataFrame existieren
+    # Sicherstellen, dass CA und PA berechnet wurden
     if "CA" not in df.columns or "PA" not in df.columns:
         st.warning("Die Spalten 'CA' oder 'PA' konnten nicht berechnet werden. Die Berechnungen wurden übersprungen.")
         # Fallback: Manuelle Berechnungen oder andere Spalten verwenden
@@ -72,7 +72,7 @@ if uploaded_file:
     # EU-Bürger Filter
     eu_citizens = st.sidebar.checkbox("Nur EU-Bürger", False)
 
-    # Daten filtern
+    # Filter anwenden
     filtered_df = df[
         (df["Alter"] >= min_age) & 
         (df["Alter"] <= max_age) &
@@ -94,16 +94,16 @@ if uploaded_file:
         # Hier wird angenommen, dass es eine Spalte 'EU' gibt, die angibt, ob ein Spieler EU-Bürger ist
         filtered_df = filtered_df[filtered_df['EU'] == 1]
 
+    # Überprüfe, ob die Spalte "Vertrag" existiert, bevor wir darauf zugreifen
+    if "Vertrag" in df.columns:
+        contract_status = st.sidebar.selectbox("Vertragsstatus", ["Verlässt aufgrund des Bosman-Urts", "Aktiv", "Auslaufend"])
+        filtered_df = filtered_df[filtered_df["Vertrag"] == contract_status]
+
     # Daten anzeigen
     st.write(f"Gefundene Spieler: {len(filtered_df)}")
     st.dataframe(filtered_df)
 
     # Erweiterte Filterung: Vertragsdetails, Reputation etc.
-    st.sidebar.header("Vertragsdetails")
-    contract_status = st.sidebar.selectbox("Vertragsstatus", ["Verlässt aufgrund des Bosman-Urts", "Aktiv", "Auslaufend"])
-    filtered_df = filtered_df[filtered_df["Vertrag"] == contract_status]
-
-    # Zusatzoptionen: Spieler suchen, die die Bosman-Regel erfüllen
     bosman_rule = st.sidebar.checkbox("Nur Bosman-Spieler (Verlassen aufgrund des Bosman-Urts)", False)
     if bosman_rule:
         filtered_df = filtered_df[filtered_df["Vertrag"] == "Verlässt aufgrund des Bosman-Urts"]
@@ -145,3 +145,4 @@ if uploaded_file:
 
 else:
     st.info("⬆️ Bitte lade oben deine Excel-Datei hoch.")
+
