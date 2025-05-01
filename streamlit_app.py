@@ -23,7 +23,6 @@ if uploaded_file:
     df["Bewertung%"] = df["Beste Bewertung"].apply(extract_percentage)
 
     # Berechnung von CA und PA auf Basis von Genie Scout:
-    # 1. Wenn 100% = 200, dann (Prozentwert / 100) * 200
     df["Potenzial"] = (df["Potenzial%"] / 100) * 200  # Potenzial nach Genie Scout umgerechnet
     df["Bewertung"] = (df["Bewertung%"] / 100) * 200  # Bewertung nach Genie Scout umgerechnet
 
@@ -35,13 +34,17 @@ if uploaded_file:
 
     # 🎯 Scouting-Modi
     st.sidebar.header("🎯 Scouting-Modus")
-    modus = st.sidebar.selectbox("Modus wählen", ["Manuell", "Top-Talente", "Schnäppchen", "Soforthilfe"])
+    modus = st.sidebar.selectbox("Modus wählen", ["Manuell", "Top-Talente", "Schnäppchen", "Soforthilfe", "Versteckte Talente", "Erfahrene Spieler"])
     if modus == "Top-Talente":
         df = df[(df["Alter"] <= 21) & (df["Potenzial"] >= 150)]
     elif modus == "Schnäppchen":
         df = df[(df["Wert"] <= 1_000_000) & (df["Zufriedenheit"] <= 50)]
     elif modus == "Soforthilfe":
         df = df[(df["Bewertung"] >= 130) & (df["Alter"] <= 30)]
+    elif modus == "Versteckte Talente":
+        df = df[(df["Potenzial"] >= 150) & (df["Bewertung"] < 120)]
+    elif modus == "Erfahrene Spieler":
+        df = df[df["Alter"] >= 30]
 
     # 📏 Eigene Filter
     st.sidebar.header("📏 Eigene Anforderungen")
