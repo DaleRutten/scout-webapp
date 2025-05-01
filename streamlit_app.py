@@ -79,6 +79,10 @@ if uploaded_file:
     # Spielername-Filter (Textinput)
     player_name = st.sidebar.text_input("Spielername eingeben", "")
 
+    # Positionen-Filter (Alphabetische Sortierung nach gängigen Positionen)
+    positions = ["TW", "IV", "ZDM", "ZOM", "ZM", "LM", "RM", "LF", "RF", "ST"]  # Torwart, Verteidiger, Mittelfeld, Stürmer
+    position_filter = st.sidebar.multiselect("Positionen", positions, default=positions)
+
     # Daten filtern
     filtered_df = df[
         (df["Alter"] >= min_age) & 
@@ -104,6 +108,9 @@ if uploaded_file:
     # Spielername Filtern
     if player_name:
         filtered_df = filtered_df[filtered_df["Name"].str.contains(player_name, case=False, na=False)]
+
+    # Positionen filtern
+    filtered_df = filtered_df[filtered_df["Position"].isin(position_filter)]
 
     # Daten anzeigen
     st.write(f"Gefundene Spieler: {len(filtered_df)}")
