@@ -18,12 +18,11 @@ if uploaded_file:
 
     # Berechnung von CA und PA auf Basis vorhandener Attribute
     try:
-        # Dynamische Berechnung von CA und PA, auch wenn die Namen nicht genau passen
-        # Beispiel: CA = Durchschnitt aus verschiedenen technischen Attributen
+        # Technische Attribute für CA und mentale Attribute für PA
         ca_columns = ["Ballkontrolle", "Abschluss", "Pässe", "Flanken", "Dribbling"]
         pa_columns = ["Konzentration", "Aggressivität", "Teamwork", "Flair", "Kondition"]
 
-        # Nur die Spalten verwenden, die in der Excel-Datei existieren
+        # Nur die existierenden Spalten verwenden
         available_ca_columns = [col for col in ca_columns if col in df.columns]
         available_pa_columns = [col for col in pa_columns if col in df.columns]
 
@@ -44,8 +43,10 @@ if uploaded_file:
 
     # Überprüfe, ob CA und PA jetzt in der DataFrame existieren
     if "CA" not in df.columns or "PA" not in df.columns:
-        st.error("Die Spalten 'CA' oder 'PA' konnten nicht berechnet werden.")
-        st.stop()
+        st.warning("Die Spalten 'CA' oder 'PA' konnten nicht berechnet werden. Die Berechnungen wurden übersprungen.")
+        # Fallback: Manuelle Berechnungen oder andere Spalten verwenden
+        df["CA"] = df.get("CA", 0)  # Falls keine CA-Berechnung möglich ist, setze auf 0
+        df["PA"] = df.get("PA", 0)  # Falls keine PA-Berechnung möglich ist, setze auf 0
 
     # Sidebar Filter
     st.sidebar.header("Filtern nach Attributen")
