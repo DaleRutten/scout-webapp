@@ -50,13 +50,13 @@ if uploaded_file:
     st.sidebar.header("📏 Eigene Anforderungen")
     min_ca = st.sidebar.number_input("Minimale aktuelle Stärke (CA)", 0, 200, 0)
     min_pa = st.sidebar.number_input("Minimales Potenzial (PA)", 0, 200, 0)
-    max_age = st.sidebar.number_input("Maximales Alter", 0, 100, 100)
+    max_age = st.sidebar.number_input("Maximales Alter", 0, 50, 100)
     df = df[(df["Bewertung"] >= min_ca) & (df["Potenzial"] >= min_pa) & (df["Alter"] <= max_age)]
 
     # 💰 Realismusfilter
     st.sidebar.header("💰 Realismusfilter")
-    max_gehalt = st.sidebar.number_input("Max. Gehalt (€)", 0, 2_000_000, 50000)
-    max_wert = st.sidebar.number_input("Max. Marktwert (€)", 0, 500_000_000, 2_000_000)
+    max_gehalt = st.sidebar.number_input("Max. Gehalt (€)", 0, 500_000_000, 50_000_000)  # Gehalt bis 500 Millionen
+    max_wert = st.sidebar.number_input("Max. Marktwert (€)", 0, 500_000_000, 2_000_000)  # Marktwert bis 500 Millionen
     max_zufr = st.sidebar.number_input("Max. Zufriedenheit", 0, 100, 60)
     df = df[(df["Gehalt"] <= max_gehalt) & (df["Wert"] <= max_wert) & (df["Zufriedenheit"] <= max_zufr)]
 
