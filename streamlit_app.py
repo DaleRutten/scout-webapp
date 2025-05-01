@@ -27,6 +27,7 @@ if uploaded_file:
         available_ca_columns = [col for col in ca_columns if col in df.columns]
         available_pa_columns = [col for col in pa_columns if col in df.columns]
 
+        # Berechne CA und PA nur, wenn mindestens eine passende Spalte vorhanden ist
         if available_ca_columns:
             df["CA"] = df[available_ca_columns].mean(axis=1)
         else:
@@ -35,10 +36,15 @@ if uploaded_file:
         if available_pa_columns:
             df["PA"] = df[available_pa_columns].mean(axis=1)
         else:
-            st.warning("Es konnten keine passenden Spalten für PA gefunden werden!")
+            st.warning("Es konnten keine passenden Spalten für PA gefunden!")
 
     except Exception as e:
         st.error(f"Ein Fehler trat auf: {e}")
+        st.stop()
+
+    # Überprüfe, ob CA und PA jetzt in der DataFrame existieren
+    if "CA" not in df.columns or "PA" not in df.columns:
+        st.error("Die Spalten 'CA' oder 'PA' konnten nicht berechnet werden.")
         st.stop()
 
     # Sidebar Filter
