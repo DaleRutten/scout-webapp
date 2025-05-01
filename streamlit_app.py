@@ -16,15 +16,30 @@ if uploaded_file:
     st.write("Verfügbare Spalten:")
     st.write(df.columns)
 
-    # Zeige die ersten paar Zeilen der Daten an, um zu überprüfen, wie die Daten strukturiert sind
-    st.write("Erste 5 Zeilen der Daten:")
-    st.write(df.head())
+    # Versuche, eine Berechnung der CA und PA vorzunehmen, falls die Spalten existieren
+    try:
+        # Dynamische Berechnung von CA und PA, auch wenn die Namen nicht genau passen
+        # Beispiel: CA = Durchschnitt aus verschiedenen technischen Attributen
+        ca_columns = ["Ballkontrolle", "Abschluss", "Pässe", "Flanken", "Dribbling"]
+        pa_columns = ["Konzentration", "Aggressivität", "Teamwork", "Flair", "Kondition"]
 
-    # Berechnung von CA und PA auf Basis anderer Attribute
-    # Beispiel: CA = Durchschnitt der technischen Attribute, PA = Durchschnitt der physischen und mentalen Attribute
-    # Diese Berechnung kann an die tatsächliche Logik angepasst werden, die du verwenden möchtest
-    df["CA"] = df[["Ballkontrolle", "Abschluss", "Pässe", "Flanken", "Dribbling"]].mean(axis=1)
-    df["PA"] = df[["Konzentration", "Aggressivität", "Teamwork", "Flair", "Kondition"]].mean(axis=1)
+        # Nur die Spalten verwenden, die in der Excel-Datei existieren
+        available_ca_columns = [col for col in ca_columns if col in df.columns]
+        available_pa_columns = [col for col in pa_columns if col in df.columns]
+
+        if available_ca_columns:
+            df["CA"] = df[available_ca_columns].mean(axis=1)
+        else:
+            st.warning("Es konnten keine passenden Spalten für CA gefunden werden!")
+
+        if available_pa_columns:
+            df["PA"] = df[available_pa_columns].mean(axis=1)
+        else:
+            st.warning("Es konnten keine passenden Spalten für PA gefunden werden!")
+
+    except Exception as e:
+        st.error(f"Ein Fehler trat auf: {e}")
+        st.stop()
 
     # Sidebar Filter
     st.sidebar.header("Filtern nach Attributen")
