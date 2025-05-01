@@ -12,9 +12,13 @@ if uploaded_file:
     df = pd.read_excel(uploaded_file)
     df.columns = df.columns.str.strip()  # Entfernen von Leerzeichen in den Spaltennamen
 
-    # Überprüfe die Spaltennamen und zeige sie an, um Fehler zu vermeiden
+    # Überprüfe die Spaltennamen und zeige sie an
     st.write("Verfügbare Spalten:")
     st.write(df.columns)
+
+    # Zeige die ersten paar Zeilen der Daten an, um zu überprüfen, wie die Daten strukturiert sind
+    st.write("Erste 5 Zeilen der Daten:")
+    st.write(df.head())
 
     # Überprüfe, ob 'Potenzial' und 'Bewertung' in den Spalten vorhanden sind
     if "Potenzial" not in df.columns or "Bewertung" not in df.columns:
